@@ -1,0 +1,42 @@
+# Project Rules: provision-redhat-app
+
+These rules apply to any AI assistant (Cline, Copilot CLI, Gemini, etc.) working in this repository. Read them before taking action.
+
+## 1. Scope discipline — do only what was asked
+
+- **Review means review.** When the user asks to "review", "look at", "check", or "analyze" something, produce findings/commentary only. Do **not** modify files, create files, or run code changes.
+- **Plan means plan.** When the user asks to "plan" something, write/update the plan document only. Do **not** start implementing.
+- **Implement only on explicit instruction.** Phrases that authorize code changes: "implement", "apply", "fix it", "make the changes", "go ahead", "yes, please do it". If the previous request was a review/plan and the user says "yes, please", ask a clarifying question unless the scope is unambiguous.
+- If uncertain whether the user wants implementation vs. discussion, **ask before acting**.
+
+## 2. Destructive operations — never reach for them casually
+
+- **Never run `git clean -fd` / `-fdx`** to "revert". It permanently deletes untracked files and directories the user may care about.
+- To undo your own changes, prefer, in order:
+    1. `git restore <specific paths>` for modified tracked files.
+    2. `rm <specific untracked files you created>` — list them explicitly; do not use wildcards or `-r` on directories you didn't create.
+    3. `git stash` if a broader rollback is needed but you're unsure.
+- Before any destructive command, enumerate exactly what will be affected and confirm it matches only your own additions.
+- Never use `rm -rf`, `git reset --hard`, `git checkout -- .` combined with `git clean`, or force-push without explicit user authorization for that specific operation.
+- Keep a mental (or written) ledger of every file you create or modify in a session, so a targeted revert is always possible.
+
+## 3. Memory Bank is canonical
+
+- Read `memory-bank/` at the start of non-trivial work. It reflects current project state.
+- Update Memory Bank files only when the user authorizes changes or when the user explicitly asks you to capture something there.
+- When updating `memory-bank/activeContext.md` or `task_state.md`, keep prior context unless it is factually wrong.
+
+## 4. Plans live in `docs/plans/`
+
+- One plan file per initiative, named `YYYY-MM-DD-<slug>.md`. Do not create duplicate plan files.
+- If a plan exists, update it in place or supersede it explicitly (note the supersession in Memory Bank); do not leave stale duplicates.
+
+## 5. Ansible role conventions
+
+- This directory **is** the `provision-redhat-app` role. There is no `roles/` wrapper. Do not invent one.
+- Secrets belong in Ansible Vault (`vault_*` variables). Never commit literal secret values.
+- Prefer FQCN modules, idempotent patterns, and tagged task files.
+
+## 6. Ask before assuming
+
+- Version choices, topology decisions, auth backends, and any "which option do you want" question must be confirmed with the user before being baked into code or plans.
