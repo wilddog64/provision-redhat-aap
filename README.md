@@ -1,31 +1,61 @@
-Role Name
-=========
+provision-redhat-app
+====================
 
-A brief description of the role goes here.
+Ansible role to deploy **Red Hat Ansible Automation Platform (AAP) 2.5** (containerized installer) on RHEL 9.x and integrate it with Active Directory via LDAPS.
+
+> ⚠️ **Status:** planning complete, implementation in progress. See [`memory-bank/activeContext.md`](./memory-bank/activeContext.md) for current state.
+
+Quick Start
+-----------
+
+1. **Read the plan** in [`docs/plans/`](./docs/plans/) — it describes phases, the variable contract, and open questions.
+2. **Provide secrets via Ansible Vault.** At minimum: `vault_aap_admin_password`, `vault_aap_pg_password`, `vault_aap_registry_password`, `vault_aap_ad_bind_password`.
+3. **Point to the AAP installer bundle** by setting `aap_installer_src` (URL or local path) and `aap_installer_sha256`.
+4. **Invoke the role** from a playbook:
+
+   ```yaml
+   - hosts: pas01
+     become: true
+     roles:
+       - role: provision-redhat-app
+         vars:
+           aap_installer_src: "https://artifacts.example.com/aap-2.5-bundle.tar.gz"
+           aap_installer_sha256: "…"
+           aap_ad_server: "ad.dev.costcotravel.com"
+           aap_ad_base_dn: "DC=dev,DC=costcotravel,DC=com"
+           aap_ad_bind_dn: "CN=svc-aap,OU=ServiceAccounts,DC=dev,DC=costcotravel,DC=com"
+   ```
+
+5. **Run by phase** using tags: `preflight`, `install`, `configure`, `ad`.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+- Control node: `ansible-core` ≥ 2.15 recommended (see plan for verification on `pas01`).
+- Target: RHEL 9.x with AAP subscription entitlement, Podman-capable.
+- Collections: `ansible.containerized_installer`, `ansible.platform`, `ansible.controller`, `ansible.hub` (installed on demand; see plan).
+- Minimums: 16 GiB RAM, 4 vCPU, ~60 GiB free disk.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+The full variable contract lives in [`defaults/main.yml`](./defaults/main.yml) and is documented in the [implementation plan](./docs/plans/). Secrets must be provided via Ansible Vault (`vault_*` keys) — never commit literal values.
 
-Dependencies
-------------
+Documentation
+-------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+- **[AGENTS.md](./AGENTS.md)** — guidance for AI coding agents working in this repo.
+- **[docs/plans/](./docs/plans/)** — date-stamped implementation plans (one per initiative).
+- **[memory-bank/](./memory-bank/)** — project state, context, conventions, and task tracking.
+- **[.clinerules](./.clinerules)** — hard rules on scope and destructive operations.
 
-Example Playbook
-----------------
+Testing
+-------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+```bash
+ansible-playbook tests/test.yml --syntax-check
+ansible-playbook tests/test.yml --check   # dry run; installer step is not fully dry-runnable
+```
 
 License
 -------
@@ -35,4 +65,5 @@ BSD
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+Maintained by the Costco Travel Automation team.
+
